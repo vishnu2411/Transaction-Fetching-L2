@@ -33,7 +33,7 @@ async def subscribe(chain_id, ws):
             data = json.loads(await asyncio.wait_for(ws.recv(), timeout=5))
             if 'params' in data:
                 txns = data['params']['result']
-                asyncio.create_task(handle_message(chain_id, txns))
+                asyncio.create_task(handle_message(txns))
         except asyncio.TimeoutError:
             pass
 
