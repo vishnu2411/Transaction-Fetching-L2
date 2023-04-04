@@ -9,31 +9,32 @@ async def handle_message(data):
     print(f'Received data: {data}')
     if 'params' in data:
         chain_id = data['params']['subscription']
-        txns = data['params']['result']
-        for txn in txns:
-            logging.info(f"Chain ID: {chain_id}, Transaction Hash: {txn['hash']}, Block Number: {txn['blockNumber']}, From: {txn['from']}, To: {txn['to']}, Value: {txn['value']}")
+        txns = data['params']['result']['transaction']
 
+        print(f'transaction: {txns}')
+        logging.info(f"Chain ID: {chain_id}, Transaction Hash: {txns['hash']}, Block Number: {txns['blockNumber']}, From: {txns['from']}, To: {txns['to']}, Value: {txns['value']}")
+        
 async def subscribe(chain_id, ws):
+    subscribe_message = json.dumps({
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "eth_subscribe",
+        "params": ["alchemy_minedTransactions", {}]
+    })
+
+    #for logs
     '''subscribe_message = json.dumps({
         "jsonrpc": "2.0",
         "id": 2,
         "method": "eth_subscribe",
-        "params": ["alchemy_mined_transactions", {}]
-    })'''
-
-    subscribe_message = json.dumps({
-        "jsonrpc": "2.0",
-        "id": 2,
-        "method": "eth_subscribe",
         "params": ["logs", {}]
-    })
+    })'''
     await ws.send(subscribe_message)
     while True:
         try:
             data = json.loads(await asyncio.wait_for(ws.recv(), timeout=5))
-            if 'params' in data:
-                txns = data['params']['result']
-                asyncio.create_task(handle_message(txns))
+            asyncio.create_task(handle_message(data))
+            
         except asyncio.TimeoutError:
             pass
 
@@ -52,7 +53,7 @@ async def main():
         tasks.append(asyncio.create_task(subscribe('optimism', ovm_ws)))
     except Exception as e:
         logging.error(f"Optimism WebSocket error: {e}")
-
+        
     await asyncio.gather(*tasks)
 
 if __name__ == '__main__':

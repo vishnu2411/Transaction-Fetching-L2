@@ -6,10 +6,10 @@ logging.basicConfig(filename='transaction_log.log', level=logging.INFO, format='
 
 def on_message(ws, message):
     data = json.loads(message)
+    print(f'Received data: {data}')
     if 'params' in data:
-        txns = data['params']['result']['transactions']
-        for txn in txns:
-            logging.info(f"Transaction Hash: {txn['hash']}, Block Number: {txn['blockNumber']}, From: {txn['from']}, To: {txn['to']}, Value: {txn['value']}")
+        txns = data['params']['result']['transaction']
+        logging.info(f"Transaction Hash: {txns['hash']}, Block Number: {txns['blockNumber']}, From: {txns['from']}, To: {txns['to']}, Value: {txns['value']}")
 
 def on_error(ws, error):
     logging.error(error)
@@ -24,7 +24,7 @@ def on_open(ws):
     #for all mixed transactions
     subscribe_message = json.dumps({
         "jsonrpc": "2.0",
-        "id": 2,
+        "id": 1,
         "method": "eth_subscribe",
         "params": ["alchemy_minedTransactions", {}]
     })
@@ -39,6 +39,7 @@ def on_open(ws):
        "id": 1
     })'''
 
+    #for logs
     '''subscribe_message = json.dumps({
         "jsonrpc": "2.0",
         "id": 2,
